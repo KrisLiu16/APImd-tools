@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Markdown 文档向导</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>API Markdown 文档向导</h1>
+      <p>输入接口信息，实时生成符合规范的 Markdown 文档。</p>
+    </header>
+    <main>
+      <section class="editor">
+        <div class="panel">
+          <h2>文档信息</h2>
+          <label class="field">
+            <span>文档标题</span>
+            <input type="text" id="doc-title" placeholder="例如：GPU 资源配额接口文档" />
+          </label>
+          <label class="field">
+            <span>文档简介</span>
+            <textarea id="doc-description" rows="3" placeholder="简要说明文档用途"></textarea>
+          </label>
+        </div>
+        <div class="panel">
+          <div class="panel-title">
+            <h2>接口列表</h2>
+            <div class="actions">
+              <button id="import-openapi" class="secondary" type="button">导入 OpenAPI JSON</button>
+              <button id="add-endpoint" class="primary" type="button">新增接口</button>
+            </div>
+            <input type="file" id="import-file" accept="application/json,.json" hidden />
+          </div>
+          <div id="endpoints"></div>
+        </div>
+      </section>
+      <section class="preview">
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Markdown 预览</h2>
+            <button id="copy-markdown" class="secondary">复制 Markdown</button>
+          </div>
+          <pre id="markdown-preview"></pre>
+        </div>
+      </section>
+    </main>
+    <template id="endpoint-template">
+      <article class="endpoint">
+        <div class="endpoint-header">
+          <h3>接口</h3>
+          <button class="ghost remove-endpoint" type="button">删除</button>
+        </div>
+        <div class="grid">
+          <label class="field">
+            <span>接口名称</span>
+            <input type="text" data-field="name" placeholder="例如：资源配额修改接口" />
+          </label>
+          <label class="field">
+            <span>请求方式</span>
+            <select data-field="method">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>PATCH</option>
+              <option>DELETE</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>请求路径</span>
+            <input type="text" data-field="path" placeholder="例如：/api/v1/quotas/:tenant" />
+          </label>
+        </div>
+        <label class="field">
+          <span>接口简介</span>
+          <textarea rows="2" data-field="summary" placeholder="用于描述接口用途"></textarea>
+        </label>
+        <div class="section">
+          <div class="section-title">
+            <h4>请求头</h4>
+            <button class="ghost add-header" type="button">添加请求头</button>
+          </div>
+          <div class="table" data-collection="headers"></div>
+        </div>
+        <div class="section">
+          <div class="section-title">
+            <h4>请求体参数</h4>
+            <button class="ghost add-parameter" type="button">添加字段</button>
+          </div>
+          <div class="table" data-collection="parameters"></div>
+        </div>
+        <label class="field">
+          <span>请求示例</span>
+          <textarea rows="5" data-field="requestExample" placeholder="使用 JSON、cURL 等格式描述请求"></textarea>
+        </label>
+        <label class="field">
+          <span>响应示例</span>
+          <textarea rows="8" data-field="responseExample" placeholder="返回体示例"></textarea>
+        </label>
+      </article>
+    </template>
+    <template id="header-row-template">
+      <div class="table-row three-cols">
+        <input type="text" class="cell" data-field="name" placeholder="Header 名称" />
+        <input type="text" class="cell" data-field="value" placeholder="示例值" />
+        <input type="text" class="cell" data-field="description" placeholder="说明" />
+        <button class="ghost remove-row" type="button">删除</button>
+      </div>
+    </template>
+    <template id="row-template">
+      <div class="table-row">
+        <input type="text" class="cell" data-field="name" placeholder="字段名" />
+        <input type="text" class="cell" data-field="type" placeholder="类型/值" />
+        <select class="cell" data-field="required">
+          <option value="yes">必填</option>
+          <option value="no">可选</option>
+        </select>
+        <input type="text" class="cell" data-field="description" placeholder="说明" />
+        <button class="ghost remove-row" type="button">删除</button>
+      </div>
+    </template>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
