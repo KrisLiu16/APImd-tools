@@ -12,26 +12,35 @@
 
 ## 如何运行
 
-项目不依赖任何外部 npm 包。只需使用 Node.js 启动提供的静态文件服务器，然后在浏览器中访问即可：
+项目完全基于 Node.js，无需任何 Python 依赖，也不需要安装额外 npm 包。克隆仓库后即可启动：
 
 ```bash
-cd web
 node server.js
+```
+
+或者借助 npm/yarn/pnpm 启动脚本（不会触发依赖安装）：
+
+```bash
+npm start
+# 或
+pnpm start
+# 或
+yarn start
 ```
 
 默认会在 `http://localhost:5173` 启动。当你在页面左侧填写信息时，右侧会实时刷新 Markdown 结果。
 
-如果你更倾向于直接在文件系统中打开页面，也可以在浏览器中打开 `web/public/index.html`，所有功能都能正常使用。
+如果你更倾向于直接在文件系统中打开页面，也可以在浏览器中打开 `public/index.html`，所有功能都能正常使用。
 
 ## 目录结构
 
 ```
-web/
-  public/
-    index.html   # 页面骨架
-    app.js       # 表单逻辑和 Markdown 生成
-    styles.css   # 页面样式
-  server.js      # 简单的 Node.js 静态资源服务器
+public/
+  index.html   # 页面骨架
+  app.js       # 表单逻辑和 Markdown 生成
+  styles.css   # 页面样式
+server.js      # 简单的 Node.js 静态资源服务器
+package.json   # 启动脚本配置
 ```
 
 欢迎根据团队规范对字段或样式进行拓展。
