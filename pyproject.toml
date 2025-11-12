@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "apimd-tools"
+version = "0.1.0"
+description = "CLI utilities for generating API documentation in Markdown format"
+authors = [
+  { name = "APImd Tools" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "PyYAML>=6.0"
+]
+yaml = [
+  "PyYAML>=6.0"
+]
+
+[project.scripts]
+apimd = "apimd_tools.cli:main"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["src"]
