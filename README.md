@@ -10,27 +10,15 @@
 - 一键复制生成的 Markdown 文档
 - 内置默认请求头，开箱即用
 
-## 如何运行
+## 一键启动
 
-项目完全基于 Node.js，无需任何 Python 依赖，也不需要安装额外 npm 包。克隆仓库后即可启动：
+无需安装任何依赖，也不需要敲命令行。根据你的操作系统选择下面的方式即可：
 
-```bash
-node server.js
-```
+- **Windows**：双击仓库根目录下的 `start-windows.bat`，系统会自动在默认浏览器中打开页面。
+- **macOS**：首次右键点击 `start-macos.command` 选择“打开”，通过安全提示后，之后即可直接双击启动。
+- **Linux**：给 `start-linux.sh` 添加可执行权限（`chmod +x start-linux.sh`），之后双击或在文件管理器中选择“在终端中运行”即可打开。
 
-或者借助 npm/yarn/pnpm 启动脚本（不会触发依赖安装）：
-
-```bash
-npm start
-# 或
-pnpm start
-# 或
-yarn start
-```
-
-默认会在 `http://localhost:5173` 启动。当你在页面左侧填写信息时，右侧会实时刷新 Markdown 结果。
-
-如果你更倾向于直接在文件系统中打开页面，也可以在浏览器中打开 `public/index.html`，所有功能都能正常使用。
+如果你更习惯手动操作，也可以直接双击 `public/index.html` 通过浏览器访问所有功能。
 
 ## 目录结构
 
@@ -39,8 +27,9 @@ public/
   index.html   # 页面骨架
   app.js       # 表单逻辑和 Markdown 生成
   styles.css   # 页面样式
-server.js      # 简单的 Node.js 静态资源服务器
-package.json   # 启动脚本配置
+start-windows.bat   # Windows 下一键启动脚本
+start-macos.command # macOS 下一键启动脚本
+start-linux.sh      # Linux 下一键启动脚本
 ```
 
 欢迎根据团队规范对字段或样式进行拓展。
