@@ -1,0 +1,237 @@
+title: GPU 资源配额接口文档
+description: >-
+  GPU 资源配额的创建、释放以及查询接口示例。
+sections:
+  - endpoints:
+      - id: quota-update
+        title: 资源配额修改接口
+        status: 新接口
+        summary: 用于修改某配额
+        method: PUT
+        path: /api/v1/quotas/:tenant
+        headers:
+          - name: Content-type
+            value: application/json
+          - name: Authorization
+            value: Bearer {token}
+        request:
+          parameter_groups:
+            - title: 请求体参数
+              items:
+                - name: region
+                  type: string
+                  required: true
+                  description: 资源选区
+                - name: tenant
+                  type: string
+                  required: true
+                  description: 租户名
+                - name: quota_source
+                  type: string
+                  required: true
+                  description: 配额来源
+                  enum: [purchase, assign]
+                - name: gpu_model
+                  type: string
+                  required: true
+                  description: gpu类型
+                - name: num
+                  type: int
+                  required: true
+                  description: 修改后的数量，如果将num设置为0,则等同于是强制释放操作
+                - name: expired_at
+                  type: string
+                  required: false
+                  description: 过期时间
+                - name: id
+                  type: int
+                  required: false
+                  description: 如果对应的配额有,则传递
+          examples:
+            - title: 请求示例
+              language: JSON
+              content: |
+                PUT /api/v1/quotas/gpu-operator
+
+                {
+                    "region": "TW",
+                    "quota_source": "purchase",
+                    "gpu_model": "nvidia.com/gpu",
+                    "num": 1,
+                    "expired_at": "2025-12-03",
+                    "id": 212
+                }
+        response:
+          examples:
+            - title: 响应示例
+              language: JSON
+              content: |
+                {
+                  "code": 0
+                }
+      - id: quota-release
+        title: 资源配额释放接口
+        status: 新接口
+        summary: 用于释放某配额
+        method: DELETE
+        path: /api/v1/quotas/:tenant
+        headers:
+          - name: Content-type
+            value: application/json
+          - name: Authorization
+            value: Bearer {token}
+        request:
+          parameter_groups:
+            - title: 请求体参数
+              items:
+                - name: region
+                  type: string
+                  required: true
+                  description: 资源选区
+                - name: tenant
+                  type: string
+                  required: true
+                  description: 租户名
+                - name: quota_source
+                  type: string
+                  required: true
+                  description: 配额来源
+                  enum: [purchase, assign]
+                - name: gpu_model
+                  type: string
+                  required: true
+                  description: gpu类型
+                - name: id
+                  type: int
+                  required: false
+                  description: 如果对应的配额有,则传递
+          examples:
+            - title: 请求示例
+              language: JSON
+              content: |
+                DELETE /api/v1/quotas/gpu-operator
+
+                {
+                    "region": "TW",
+                    "quota_source": "purchase",
+                    "gpu_model": "nvidia.com/gpu",
+                    "id": 212
+                }
+      - id: quota-query
+        title: 资源配额查询接口
+        summary: 获取所有配额信息
+        method: GET
+        path: /api/v1/quota/user-quotas
+        headers:
+          - name: Authorization
+            value: Bearer {token}
+        request:
+          parameter_groups:
+            - title: 请求体参数
+              description: 支持按照配额来源和类型过滤。
+              items:
+                - name: quota_source
+                  type: string
+                  description: 参数和响应对应调整,支持枚举值为:"purchase" 或 "assign"
+                - name: quota_type
+                  type: string
+                  description: 参数和响应对应调整,支持枚举值为:"flexible" or "dedicated" or "mig" or "vgpu"
+        response:
+          examples:
+            - title: 响应示例
+              language: JSON
+              content: |
+                {
+                  "code": 0,
+                  "data": {
+                    "total": 3,
+                    "page": 1,
+                    "page_size": 10,
+                    "items": [
+                      {
+                        "tenant_name": "platform-operator",
+                        "quota_source": "purchase",
+                        "gpu_model": "nvidia.com/gpu",
+                        "quota_types": [
+                          {
+                            "quota_type": "flexible",
+                            "quota_details": [
+                              {
+                                "region": "US",
+                                "gpu_model": "nvidia.com/gpu",
+                                "count": 1
+                              }
+                            ],
+                            "used_count": 0,
+                            "total_count": 1
+                          }
+                        ]
+                      },
+                      {
+                        "tenant_name": "platform-operator",
+                        "quota_source": "purchase",
+                        "gpu_model": "nvidia.com/mig-1c10g",
+                        "quota_types": [
+                          {
+                            "quota_type": "mig",
+                            "quota_details": [
+                              {
+                                "region": "US",
+                                "gpu_model": "nvidia.com/mig-1c10g",
+                                "count": 1
+                              }
+                            ],
+                            "used_count": 0,
+                            "total_count": 1
+                          }
+                        ]
+                      },
+                      {
+                        "tenant_name": "test1015",
+                        "quota_source": "assign",
+                        "gpu_model": "tyui-3",
+                        "region": "US",
+                        "quota_types": [
+                          {
+                            "quota_type": "vgpu",
+                            "quota_details": [
+                              {
+                                "region": "US",
+                                "id": 212,
+                                "gpu_model": "tyui-3",
+                                "count": 2,
+                                "expire_time": "2026-01-02T15:04:05Z07:00"
+                              }
+                            ],
+                            "used_count": 1,
+                            "total_count": 2
+                          }
+                        ]
+                      },
+                      {
+                        "tenant_name": "zjw1029",
+                        "quota_source": "assign",
+                        "region": "US",
+                        "quota_types": [
+                          {
+                            "quota_type": "dedicated",
+                            "gpu_model": "nvidia.com/gpu",
+                            "quota_details": [
+                              {
+                                "region": "US",
+                                "id": 214,
+                                "gpu_model": "nvidia.com/gpu",
+                                "node_name": [
+                                  "gpu02"
+                                ],
+                                "count": 1
+                              }
+                            ],
+                            "used_count": 0,
+                            "total_count": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
