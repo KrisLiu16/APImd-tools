@@ -52,6 +52,13 @@ section {
   margin-bottom: 1rem;
 }
 
+.panel-title .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 .panel h2 {
   margin: 0;
   font-size: 1.25rem;

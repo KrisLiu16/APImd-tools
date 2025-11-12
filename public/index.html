@@ -27,7 +27,11 @@
         <div class="panel">
           <div class="panel-title">
             <h2>接口列表</h2>
-            <button id="add-endpoint" class="primary">新增接口</button>
+            <div class="actions">
+              <button id="import-openapi" class="secondary" type="button">导入 OpenAPI JSON</button>
+              <button id="add-endpoint" class="primary" type="button">新增接口</button>
+            </div>
+            <input type="file" id="import-file" accept="application/json,.json" hidden />
           </div>
           <div id="endpoints"></div>
         </div>

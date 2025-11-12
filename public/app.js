@@ -11,6 +11,8 @@ const endpointTemplate = document.getElementById('endpoint-template');
 const headerRowTemplate = document.getElementById('header-row-template');
 const parameterRowTemplate = document.getElementById('row-template');
 const markdownPreview = document.getElementById('markdown-preview');
+const importButton = document.getElementById('import-openapi');
+const importInput = document.getElementById('import-file');
 
 const titleInput = document.getElementById('doc-title');
 const descriptionInput = document.getElementById('doc-description');
@@ -256,6 +258,179 @@ function detectLanguage(content) {
   return '';
 }
 
+function loadFromOpenApi(document) {
+  if (!document || typeof document !== 'object') {
+    throw new Error('Invalid OpenAPI document');
+  }
+
+  const info = document.info || {};
+  state.title = info.title || '未命名接口文档';
+  state.description = info.description || '';
+
+  const endpoints = [];
+  endpointCounter = 1;
+
+  if (document.paths && typeof document.paths === 'object') {
+    Object.entries(document.paths).forEach(([path, operations]) => {
+      if (!operations || typeof operations !== 'object') return;
+      Object.entries(operations).forEach(([method, details]) => {
+        if (!isHttpMethod(method) || !details || typeof details !== 'object') return;
+        const endpoint = createEndpoint();
+        endpoint.name = details.summary || details.operationId || `${method.toUpperCase()} ${path}`;
+        endpoint.method = method.toUpperCase();
+        endpoint.path = path;
+        endpoint.summary = details.description || details.summary || '';
+
+        const aggregatedParameters = collectParameters(operations.parameters, details.parameters);
+        endpoint.headers = aggregatedParameters.headers;
+        endpoint.parameters = aggregatedParameters.parameters;
+
+        const requestBody = details.requestBody;
+        if (requestBody) {
+          const example = extractBodyExample(requestBody);
+          if (example) {
+            endpoint.requestExample = example;
+          }
+          const schemaParameters = parseSchemaParameters(requestBody);
+          if (schemaParameters.length) {
+            endpoint.parameters = mergeParameters(endpoint.parameters, schemaParameters);
+          }
+        }
+
+        const responseExample = extractResponseExample(details.responses);
+        if (responseExample) {
+          endpoint.responseExample = responseExample;
+        }
+
+        endpoints.push(endpoint);
+      });
+    });
+  }
+
+  state.endpoints = endpoints.length ? endpoints : [createEndpoint()];
+  titleInput.value = state.title;
+  descriptionInput.value = state.description;
+  renderEndpoints();
+  updatePreview();
+}
+
+function isHttpMethod(value) {
+  return ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(String(value).toLowerCase());
+}
+
+function collectParameters(pathParameters = [], operationParameters = []) {
+  const headers = [];
+  const parameters = [];
+  const merged = [...(Array.isArray(pathParameters) ? pathParameters : []), ...(Array.isArray(operationParameters) ? operationParameters : [])];
+
+  merged.forEach((param) => {
+    if (!param || typeof param !== 'object') return;
+    const target = String(param.in).toLowerCase();
+    const entry = {
+      name: param.name || '',
+      type: inferSchemaType(param.schema),
+      required: param.required ? 'yes' : 'no',
+      description: param.description || '',
+    };
+
+    if (target === 'header') {
+      headers.push({
+        name: param.name || '',
+        value: param.example ?? (param.schema ? param.schema.example ?? param.schema.default : ''),
+        description: param.description || '',
+      });
+    } else {
+      parameters.push(entry);
+    }
+  });
+
+  return { headers, parameters };
+}
+
+function parseSchemaParameters(requestBody) {
+  const content = requestBody.content || {};
+  const mediaTypes = ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data'];
+  const schema = mediaTypes
+    .map((type) => content[type]?.schema)
+    .find((item) => item && typeof item === 'object');
+
+  if (!schema) return [];
+
+  const requiredSet = new Set(Array.isArray(schema.required) ? schema.required : []);
+  if (schema.type === 'object' && schema.properties && typeof schema.properties === 'object') {
+    return Object.entries(schema.properties).map(([name, propertySchema]) => ({
+      name,
+      type: propertySchema.type || inferSchemaType(propertySchema),
+      required: requiredSet.has(name) ? 'yes' : 'no',
+      description: propertySchema.description || '',
+    }));
+  }
+
+  return [];
+}
+
+function inferSchemaType(schema) {
+  if (!schema || typeof schema !== 'object') return '-';
+  if (schema.type) return schema.type;
+  if (schema.properties) return 'object';
+  if (schema.items) return 'array';
+  return '-';
+}
+
+function extractBodyExample(requestBody) {
+  const content = requestBody.content || {};
+  const example = getExampleFromContent(content);
+  return example ? JSON.stringify(example, null, 2) : '';
+}
+
+function extractResponseExample(responses) {
+  if (!responses || typeof responses !== 'object') return '';
+  const firstResponse = Object.values(responses).find((resp) => resp && typeof resp === 'object');
+  if (!firstResponse) return '';
+  const content = firstResponse.content || {};
+  const example = getExampleFromContent(content);
+  return example ? JSON.stringify(example, null, 2) : '';
+}
+
+function getExampleFromContent(content) {
+  const preferredTypes = ['application/json', 'application/*+json'];
+  let payload;
+  for (const type of preferredTypes) {
+    if (content[type]) {
+      payload = content[type];
+      break;
+    }
+  }
+  if (!payload) {
+    payload = Object.values(content)[0];
+  }
+  if (!payload) return null;
+
+  if (payload.example) return payload.example;
+  if (payload.examples) {
+    const firstExample = Object.values(payload.examples)[0];
+    if (firstExample && typeof firstExample === 'object') {
+      return firstExample.value || null;
+    }
+  }
+  if (payload.schema && payload.schema.example) return payload.schema.example;
+  return null;
+}
+
+function mergeParameters(existing, additional) {
+  const seen = new Set();
+  const result = [];
+
+  [...existing, ...additional].forEach((param) => {
+    const key = `${param.name || ''}-${param.type || ''}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(param);
+  });
+
+  return result;
+}
+
 document.getElementById('add-endpoint').addEventListener('click', () => {
   state.endpoints.push(createEndpoint());
   renderEndpoints();
@@ -304,6 +479,28 @@ function bootstrap() {
   }
   renderEndpoints();
   updatePreview();
+}
+
+if (importButton && importInput) {
+  importButton.addEventListener('click', () => {
+    importInput.click();
+  });
+
+  importInput.addEventListener('change', async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      loadFromOpenApi(json);
+      showToast(`已导入 ${file.name}`);
+    } catch (error) {
+      console.error(error);
+      showToast('导入失败，请确认文件是有效的 OpenAPI JSON', true);
+    } finally {
+      importInput.value = '';
+    }
+  });
 }
 
 bootstrap();
