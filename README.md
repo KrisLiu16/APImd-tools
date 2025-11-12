@@ -1,56 +1,46 @@
-# APImd Tools
+# API Markdown 可视化向导
 
-APImd Tools 提供了一组用于根据结构化定义生成 Markdown 后端 API 文档的命令行工具。通过一份 YAML 或 JSON 配置文件即可快速输出符合规范的接口文档，避免重复编写 Markdown。
+这个项目提供了一个基于浏览器的界面，帮助你按照固定的规范编写后端 API 的 Markdown 文档。填写接口的名称、请求方式、路径、请求头、请求体字段以及请求/响应示例，右侧会实时展示生成的 Markdown 文档，方便复制或保存。
 
-## 特性
+## 功能概览
 
-- ✅ 支持 YAML 和 JSON 配置文件
-- ✅ 自动生成带编号的小节标题、请求/响应表格与示例
-- ✅ 请求参数支持路径参数、查询参数、请求体参数、Header 等多种形式
-- ✅ 响应信息支持字段说明、示例、错误码等拓展
-- ✅ 可扩展的文档模型，方便按照团队规范进行定制
+- 支持维护多个接口条目，自动编号章节标题
+- 图形化管理请求头与请求体字段，包含必填标记
+- 请求与响应示例自动识别 JSON、cURL 等常见格式并渲染代码块
+- 一键复制生成的 Markdown 文档
+- 内置默认请求头，开箱即用
 
-## 快速开始
+## 如何运行
 
-```bash
-pip install -e .
-```
-
-如需渲染 YAML 定义，请额外安装可选依赖：
+项目完全基于 Node.js，无需任何 Python 依赖，也不需要安装额外 npm 包。克隆仓库后即可启动：
 
 ```bash
-pip install PyYAML
+node server.js
 ```
 
-示例渲染命令：
+或者借助 npm/yarn/pnpm 启动脚本（不会触发依赖安装）：
 
 ```bash
-apimd render examples/quotas.json --output docs/quotas.md
+npm start
+# 或
+pnpm start
+# 或
+yarn start
 ```
 
-运行后会在 `docs/quotas.md` 中生成 Markdown 文档。若希望直接查看渲染结果，可省略 `--output` 参数让内容输出到终端。
+默认会在 `http://localhost:5173` 启动。当你在页面左侧填写信息时，右侧会实时刷新 Markdown 结果。
 
-常用命令：
+如果你更倾向于直接在文件系统中打开页面，也可以在浏览器中打开 `public/index.html`，所有功能都能正常使用。
 
-- `apimd render <definition>`：渲染 Markdown 文档
-- `apimd render <definition> --no-numbering`：关闭自动编号
-- `apimd validate <definition>`：仅校验定义文件是否有效
+## 目录结构
 
-## 可视化文档向导（Node.js）
-
-如果希望通过可视化页面引导填写接口信息、实时生成 Markdown，可以启动随项目提供的 Node.js 前端：
-
-```bash
-cd web
-npm install
-npm run dev
+```
+public/
+  index.html   # 页面骨架
+  app.js       # 表单逻辑和 Markdown 生成
+  styles.css   # 页面样式
+server.js      # 简单的 Node.js 静态资源服务器
+package.json   # 启动脚本配置
 ```
 
-随后访问终端中提示的地址（默认 `http://localhost:5173`）。页面左侧可以维护文档标题、简介以及多个接口条目，支持：
-
-- 增删接口条目、填写请求方式、路径、简介等元信息
-- 管理请求头、请求体字段（含必填与说明）
-- 为请求与响应添加示例片段，自动推断代码块语言
-- 右侧实时预览规范化的 Markdown 文档，并一键复制到剪贴板
-
-生成的 Markdown 风格与 CLI 工具保持一致，可直接保存或粘贴到团队文档中。
+欢迎根据团队规范对字段或样式进行拓展。
